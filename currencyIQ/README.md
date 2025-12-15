@@ -5,7 +5,7 @@
 ![Google Gemini](https://img.shields.io/badge/AI-Google_Gemini-4285F4?style=for-the-badge&logo=google-gemini)
 ![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?style=for-the-badge&logo=vercel)
 
-Live Demo - https://currency-converter-beta-flax.vercel.app/
+Live Demo - https://dheerajbaheti-projects-currencyiq.vercel.app/
 
 A professional, production-ready currency converter that goes beyond simple math. **CurrencyIQ** combines real-time financial data with generative AI to provide travelers with instant, context-aware insights about their destination's purchasing power, safety, and culture.
 
