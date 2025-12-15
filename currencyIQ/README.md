@@ -1,9 +1,11 @@
-# 🌍 CurrencyIQ - Intelligent Currency Converter
+# 🌍 CurrencyIQ - Smart Currency Converter
 
 ![React](https://img.shields.io/badge/React-18-blue?style=for-the-badge&logo=react)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css)
 ![Google Gemini](https://img.shields.io/badge/AI-Google_Gemini-4285F4?style=for-the-badge&logo=google-gemini)
 ![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?style=for-the-badge&logo=vercel)
+
+Live Demo - https://currency-converter-beta-flax.vercel.app/
 
 A professional, production-ready currency converter that goes beyond simple math. **CurrencyIQ** combines real-time financial data with generative AI to provide travelers with instant, context-aware insights about their destination's purchasing power, safety, and culture.
 
