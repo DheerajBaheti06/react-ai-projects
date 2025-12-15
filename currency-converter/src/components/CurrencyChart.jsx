@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { Activity } from "lucide-react";
+import { CURRENCY_API_BASE } from "../config";
+// Chart.js components
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -29,9 +31,12 @@ const CurrencyChart = ({ from, to }) => {
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(30);
 
+  /* --- DATA FETCHING --- */
   useEffect(() => {
     const fetchHistory = async () => {
       setLoading(true);
+
+      // Calculate date range (Today - Days)
       const endDate = new Date();
       const startDate = new Date();
       startDate.setDate(endDate.getDate() - days);
@@ -40,7 +45,7 @@ const CurrencyChart = ({ from, to }) => {
 
       try {
         const res = await fetch(
-          `https://api.frankfurter.app/${format(startDate)}..${format(
+          `${CURRENCY_API_BASE}/${format(startDate)}..${format(
             endDate
           )}?from=${from}&to=${to}`
         );
@@ -50,6 +55,7 @@ const CurrencyChart = ({ from, to }) => {
           const labels = Object.keys(data.rates);
           const rates = labels.map((date) => data.rates[date][to]);
 
+          // Format response for Chart.js
           setChartData({
             labels,
             datasets: [
@@ -84,6 +90,7 @@ const CurrencyChart = ({ from, to }) => {
     return () => clearTimeout(timer);
   }, [from, to, days]);
 
+  // Chart visual configuration
   const options = {
     responsive: true,
     maintainAspectRatio: false,

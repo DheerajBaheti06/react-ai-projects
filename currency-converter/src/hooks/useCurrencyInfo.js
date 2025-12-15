@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { CURRENCY_API_BASE } from "../config";
 
 export function useCurrencyInfo(currency) {
   const [data, setData] = useState({});
@@ -7,7 +8,7 @@ export function useCurrencyInfo(currency) {
   useEffect(() => {
     if (!currency) return;
     setLoading(true);
-    fetch(`https://api.frankfurter.app/latest?from=${currency}`)
+    fetch(`${CURRENCY_API_BASE}/latest?from=${currency}`)
       .then((res) => res.json())
       .then((res) => {
         setData(res.rates);

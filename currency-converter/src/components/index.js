@@ -1,5 +1,11 @@
-import InputBox from "./InputBox";
 import CurrencyChart from "./CurrencyChart";
-import GeminiInsights from \"./GeminiInsights\";\nimport DeveloperInfo from \"./DeveloperInfo\";
+import DeveloperInfo from "./DeveloperInfo";
+import GeminiInsights from "./GeminiInsights";
+import InputBox from "./InputBox";
 
-export { InputBox, CurrencyChart, GeminiInsights, DeveloperInfo };
+export { 
+    CurrencyChart, 
+    DeveloperInfo,
+    GeminiInsights, 
+    InputBox
+};

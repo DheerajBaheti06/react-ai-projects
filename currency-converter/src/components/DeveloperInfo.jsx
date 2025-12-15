@@ -1,28 +1,36 @@
+import { useEffect, useState } from "react";
 import { Github, Linkedin, FileUser, Code } from "lucide-react";
 
 const DeveloperInfo = () => {
-  // Hardcoded developer profile data
-  const profile = {
-    identity: {
-      fullName: "Dheeraj Baheti",
-      role: "Full Stack Developer",
-    },
-    links: {
-      github: "https://github.com/DheerajBaheti06",
-      linkedin: "https://www.linkedin.com/in/dheeraj-baheti1",
-      resume:
-        "https://drive.google.com/file/d/1LGdqrdugh_ZtLSGsWLY9UugJcbT35LbO/view?usp=drive_link",
-      sourceCode:
-        "https://github.com/DheerajBaheti06/react-projects/tree/main/currency-converter",
-    },
-  };
+  const [profileData, setProfileData] = useState({
+    name: "Dheeraj Baheti",
+    role: "Full Stack Developer",
+    github: "https://github.com/DheerajBaheti06",
+    linkedin: "https://www.linkedin.com/in/dheeraj-baheti1",
+    resume:
+      "https://drive.google.com/file/d/1LGdqrdugh_ZtLSGsWLY9UugJcbT35LbO/view?usp=drive_link",
+    sourceCode:
+      "https://github.com/DheerajBaheti06/react-projects/tree/main/currency-converter",
+  });
 
-  const name = profile.identity.fullName;
-  const role = profile.identity.role;
-  const githubUrl = profile.links.github;
-  const linkedinUrl = profile.links.linkedin;
-  const resumeUrl = profile.links.resume;
-  const sourceCode = profile.links.sourceCode;
+  useEffect(() => {
+    fetch("https://profile-api-theta.vercel.app/api/profile")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.links) {
+          setProfileData((prev) => ({
+            ...prev,
+            github: data.links.github || prev.github,
+            linkedin: data.links.linkedin || prev.linkedin,
+            resume: data.links.resume || prev.resume,
+            sourceCode: data.links.sourceCode || prev.sourceCode,
+          }));
+        }
+      })
+      .catch((err) => console.log("Profile fetch failed:", err));
+  }, []);
+
+  const { name, role, github, linkedin, resume, sourceCode } = profileData;
 
   return (
     <div className="fixed top-4 right-4 z-50">
@@ -36,10 +44,10 @@ const DeveloperInfo = () => {
           </span>
         </div>
 
-        {/* GitHub Link */}
-        {githubUrl && (
+        {/* Social Links */}
+        {github && (
           <a
-            href={githubUrl}
+            href={github}
             target="_blank"
             rel="noopener noreferrer"
             className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white transition-all duration-200 hover:scale-110"
@@ -49,10 +57,9 @@ const DeveloperInfo = () => {
           </a>
         )}
 
-        {/* LinkedIn Link */}
-        {linkedinUrl && (
+        {linkedin && (
           <a
-            href={linkedinUrl}
+            href={linkedin}
             target="_blank"
             rel="noopener noreferrer"
             className="p-2 rounded-full bg-blue-600 hover:bg-blue-500 text-white transition-all duration-200 hover:scale-110"
@@ -62,10 +69,9 @@ const DeveloperInfo = () => {
           </a>
         )}
 
-        {/* Resume Link (if available) */}
-        {resumeUrl && (
+        {resume && (
           <a
-            href={resumeUrl}
+            href={resume}
             target="_blank"
             rel="noopener noreferrer"
             className="p-2 rounded-full bg-purple-600 hover:bg-purple-500 text-white transition-all duration-200 hover:scale-110"
@@ -75,7 +81,6 @@ const DeveloperInfo = () => {
           </a>
         )}
 
-        {/* Source Code Link */}
         {sourceCode && (
           <a
             href={sourceCode}

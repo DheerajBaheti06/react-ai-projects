@@ -1,165 +1,45 @@
-# 🌍 Currency Converter Pro
+# React Projects Collection
 
-🔗 **Live Demo:** https://currency-converter-beta-flax.vercel.app/
+A collection of React projects built while learning React.js, showcasing various concepts and integrations.
 
-A React-based currency converter with **real-time exchange rates, historical charts, and AI-generated travel insights**.
+## Projects
 
----
+### 1. Currency IQ (Smart Currency Converter)
 
-## ✨ Features
+- **Features**: Real-time currency conversion with AI-powered travel insights, historical charts, and smart caching.
+- **Description**: A professional currency converter that combines real-time financial data with Generative AI to provide context-aware insights about purchasing power and destination safety.
+- **Live Link**: [Currency IQ - Live Demo](https://currency-converter-dheerajbaheti-projects.vercel.app/)
 
-### 💱 Currency Conversion
-- 🔄 Real-time exchange rates from Frankfurter API  
-- 💱 One-click currency swap  
-- 🌐 Country flag display  
-- 📊 7 / 30 / 90-day historical rate charts  
+### 2. Mega Project (Blog App)
 
-### 🤖 AI Travel Insights (Google Gemini)
-- 🛡️ Safety information  
-- 🍽️ Must-eat foods  
-- ☁️ Weather details  
-- 💰 Local buying power  
+- **Tech Stack**: React, Redux Toolkit, Appwrite, TinyMCE
+- **Description**: A full-stack blog application featuring user authentication, post management with a rich text editor, and Appwrite backend integration for database and storage.
 
-### 🎨 UI & Experience
-- 📱 Fully responsive design  
-- 🎯 Floating AI panel  
-- ⚡ Fast performance using Vite  
-- 🎨 Styled with Tailwind CSS  
+### 3. Password Generator
 
----
+- **Tech Stack**: React, Vite, Tailwind CSS
+- **Description**: A secure and customizable password generator allowing users to control length and character types, with a convenient one-click copy functionality.
 
-## 🚀 Setup Instructions
+## Common Setup
 
-### Requirements
-- Node.js 20.19+ or 22.12+
-- NPM or Yarn
+All projects use:
 
----
+- **React 18.2.0**
+- **Vite** for fast development and building
+- **Tailwind CSS** for styling
+- **ESLint** for code linting
 
-### Installation
+## Getting Started
 
-```bash
-git clone <repository-url>
-cd currency-converter
-npm install
-```
+1.  Clone the repository
+2.  Navigate to any project directory
+3.  Install dependencies: `npm install`
+4.  Start development server: `npm run dev`
+
+## Author
+
+Dheeraj
 
 ---
 
-### Environment Variable (Optional)
-
-Create a `.env` file:
-
-```env
-VITE_GEMINI_API_KEY=your_gemini_api_key_here
-```
-
-Get your API key from Google AI Studio.
-
----
-
-### Run Project
-
-```bash
-npm run dev
-```
-
-Open in browser: http://localhost:5173
-
----
-
-## 🛠️ Technologies Used
-
-- React 18  
-- Vite.js 7  
-- Tailwind CSS 3  
-- Chart.js 4  
-- Frankfurter API  
-- Google Gemini API  
-- Flag CDN  
-- Lucide React  
-
----
-
-## 📂 Project Structure
-
-```
-currency-converter/
-├── public/
-│   └── vite.svg               # Vite favicon
-├── src/
-│   ├── components/
-│   │   ├── CurrencyChart.jsx  # Historical rate charts
-│   │   ├── DeveloperInfo.jsx  # Developer info bar
-│   │   ├── GeminiInsights.jsx # AI travel insights
-│   │   ├── InputBox.jsx       # Currency dropdown input
-│   │   └── index.js           # Component exports
-│   ├── hooks/
-│   │   ├── getCurrencies.js       # Currency list
-│   │   ├── useConvertCurrency.js  # Exact currency fetch & Conversion logic
-│   │   └── useCurrencyInfo.js     # Fetch currency info
-│   ├── App.css
-│   ├── App.jsx
-│   ├── index.css
-│   └── main.jsx
-├── .env
-├── .env.example
-├── .eslintrc.cjs
-├── .gitignore
-├── index.html
-├── package.json
-├── postcss.config.js
-├── tailwind.config.js
-├── vite.config.js
-└── README.md
-```
-
----
-
-## 📌 Using the Floating AI Panel
-
-Click the 🤖 button to view:
-- Safety info  
-- Food suggestions  
-- Weather details  
-- Buying power  
-
-Close using outside click, × button, or toggle.
-
----
-
-## 🔧 Scripts
-
-```bash
-npm run dev
-npm run build
-npm run preview
-npm run lint
-```
-
----
-
-## 🌐 APIs Used
-
-- Frankfurter API  
-- Google Gemini API  
-- Flag CDN  
-
----
-
-## 📄 License
-
-MIT License
-
----
-
-## 👨‍💻 Developer
-
-**Dheeraj Baheti**
-
-- GitHub: https://github.com/DheerajBaheti06  
-- LinkedIn: https://linkedin.com/in/dheeraj-baheti1  
-
----
-
-Built with React, Tailwind CSS, Chart.js & Google Gemini API.
+_This collection represents my learning journey with React and modern web development technologies._

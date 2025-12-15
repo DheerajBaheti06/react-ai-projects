@@ -1,247 +1,363 @@
 import { useState, useEffect } from "react";
-import { Sparkles, RefreshCw, ShoppingBag, Lightbulb, Shield, Utensils, CloudSunRain } from "lucide-react";
+import { AI_ENDPOINT } from "../config";
+import {
+  BotMessageSquare,
+  Sparkles,
+  X,
+  Globe,
+  Wallet,
+  AlertTriangle,
+  Shield,
+  CloudSun,
+  Utensils,
+  MapPin,
+  RefreshCw,
+} from "lucide-react";
 
-// --- GEMINI API UTILITY ---
-const callGemini = async (prompt) => {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-
-  if (!apiKey) {
-    console.error("Gemini API key not found. Please add VITE_GEMINI_API_KEY to your .env file");
-    return "{}";
-  }
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-  const payload = {
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { response_mime_type: "application/json" },
-  };
-
-  const delays = [1000, 2000, 4000];
-
-  for (let i = 0; i < delays.length; i++) {
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-      const data = await response.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      return text || "{}";
-    } catch (error) {
-      if (i === delays.length - 1) return "{}";
-      await new Promise((resolve) => setTimeout(resolve, delays[i]));
-    }
-  }
-};
-
-// --- GEMINI INSIGHTS COMPONENT (MODULAR) ---
 const GeminiInsights = ({ from, to, amount, convertedAmount }) => {
-  const [insight, setInsight] = useState(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [sections, setSections] = useState({}); // store dynamic AI sections
+  const [error, setError] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [showResults, setShowResults] = useState(false);
 
+  // Reset state when currency changes
   useEffect(() => {
-    setInsight(null);
-    setSections({});
-  }, [from, to]);
+    setData(null);
+    setError(null);
+    setShowResults(false);
+  }, [to, from]);
 
-  const fetchInsight = async () => {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey || apiKey === "your_gemini_api_key_here") {
-      setInsight({
-        headline: "API Key Required 🔑",
-        buy: "Add your Gemini API key to .env file to use AI insights",
-        tip: "Check README.md for setup instructions",
-      });
-      return;
-    }
-
+  // Fetch logic with retry capability
+  const fetchInsights = () => {
     setLoading(true);
-    const prompt = `
-      Act as a savvy local travel guide. I have converted ${amount} ${from} to ${convertedAmount} ${to}.
-      Return a JSON object with exactly these 3 keys:
-      1. "headline": A 3-5 word fun summary of this amount's value.
-      2. "buy": A realistic example of what this buys at average local street prices.
-      3. "tip": A very short cultural money tip (max 10 words).
-    `;
+    setError(null);
+    setData(null);
 
-    const jsonString = await callGemini(prompt);
-    try {
-      const parsedData = JSON.parse(jsonString);
-      setInsight(parsedData);
-    } catch (e) {
-      setInsight({
-        headline: "Currency Insight",
-        buy: "Analysis unavailable right now.",
-        tip: "Keep small change handy!",
+    // Prepare payload
+    const payload = { amount, from, to, convertedAmount };
+
+    fetch(AI_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(res.statusText + " (" + res.status + ")");
+        return res.json();
+      })
+      .then((apiResponse) => {
+        try {
+          // Parse and sanitize response(sometimes gemini returns markdown formatted json)
+          const cleanJson = apiResponse.result
+            .replace(/```json/g, "")
+            .replace(/```/g, "");
+          setData(JSON.parse(cleanJson));
+        } catch (e) {
+          console.error("Failed to parse AI response", e);
+          setError("Failed to process travel data.");
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setError("Travel AI is currently busy. Please try again.");
+        setLoading(false);
       });
-    }
-    setLoading(false);
   };
 
-  const fetchSection = async (type) => {
-    if (sections[type]) return; // already fetched
-
-    setSections((prev) => ({ ...prev, [type]: { loading: true } }));
-
-    let prompt = "";
-    if (type === "safety") {
-      prompt = `
-        Provide safety info for foreign travelers in the country using ${to} currency.
-        Return JSON: { "score": "X/10", "note": "short safety tip" }
-      `;
-    } else if (type === "food") {
-      prompt = `
-        List 3 must-eat local foods in the country using ${to} currency.
-        Return JSON: { "must_eat": ["food1","food2","food3"] }
-      `;
-    } else if (type === "weather") {
-      prompt = `
-        Give a very short weather tip for travelers in the country using ${to} currency.
-        Return JSON: { "forecast": "short weather tip" }
-      `;
+  // Trigger fetch on user interaction
+  useEffect(() => {
+    if (showResults && !data && !loading && !error) {
+      fetchInsights();
     }
+  }, [showResults]);
 
-    const response = await callGemini(prompt);
-    try {
-      const parsed = JSON.parse(response);
-      setSections((prev) => ({ ...prev, [type]: { ...parsed, loading: false } }));
-    } catch (e) {
-      setSections((prev) => ({ ...prev, [type]: { error: "Unable to fetch", loading: false } }));
-    }
+  const getSafetyColor = (score) => {
+    const num = parseInt(score);
+    if (num >= 8) return "bg-green-500";
+    if (num >= 5) return "bg-yellow-500";
+    return "bg-red-500";
+  };
+
+  const handleRetry = () => {
+    setError(null);
+    setLoading(false);
+    // Force re-mount to clear transient states
+    setIsOpen(false);
+    setTimeout(() => setIsOpen(true), 100);
   };
 
   return (
-    <div className="bg-gradient-to-br from-indigo-900/40 to-purple-900/40 backdrop-blur-md border border-indigo-500/30 rounded-2xl p-5 md:p-6 shadow-xl relative overflow-hidden group">
-      <div className="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl group-hover:bg-indigo-500/30 transition-all"></div>
+    <>
+      {/* Floating Trigger */}
+      <button
+        onClick={() => setIsOpen(true)}
+        className="fixed bottom-6 right-6 z-50 w-16 h-16 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-all border-4 border-[#0f172a]"
+      >
+        <BotMessageSquare className="w-8 h-8 text-white" />
+        {/* Notification Dot Animation */}
+        {!data && !error && (
+          <span className="absolute -top-1 -right-1 flex h-4 w-4">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-4 w-4 bg-indigo-500"></span>
+          </span>
+        )}
+      </button>
 
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-4 relative z-10">
-        <Sparkles className="w-5 h-5 text-yellow-300 animate-pulse" />
-        <h3 className="text-white font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-amber-400">
-          Travel AI
-        </h3>
-      </div>
-
-      {/* Main Scan Value */}
-      {!insight && !loading && (
-        <div className="text-center py-4">
-          <p className="text-indigo-200/80 text-sm mb-4">Is this enough for dinner? Find out.</p>
-          <button
-            onClick={fetchInsight}
-            className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-3 px-4 rounded-xl transition-all shadow-lg hover:shadow-indigo-500/25 active:scale-95 touch-manipulation"
+      {/* Modal Container */}
+      {isOpen && (
+        <div
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#0f172a] w-full max-w-lg rounded-3xl border border-indigo-500/30 shadow-2xl p-6 relative overflow-hidden max-h-[90vh] overflow-y-auto no-scrollbar"
           >
-            <Sparkles className="w-4 h-4" /> Scan Value
-          </button>
-        </div>
-      )}
-
-      {loading && (
-        <div className="flex flex-col items-center justify-center py-8 space-y-3">
-          <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-indigo-300 text-xs animate-pulse">Scanning local prices...</p>
-        </div>
-      )}
-
-      {/* Insight Cards */}
-      {insight && (
-        <div className="relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500 grid gap-3">
-          {/* Headline */}
-          <div className="bg-indigo-500/20 border border-indigo-400/20 rounded-lg p-3 text-center">
-            <h4 className="text-xl font-bold text-white tracking-tight">{insight.headline}</h4>
-          </div>
-
-          {/* Buy & Tip */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="bg-slate-900/60 rounded-lg p-3 border border-slate-700/50 flex flex-col items-center text-center gap-2">
-              <div className="bg-green-500/20 p-2 rounded-full">
-                <ShoppingBag className="w-4 h-4 text-green-400" />
+            {/* Header */}
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-6 h-6 text-yellow-300" />
+                  <h3 className="text-xl font-bold text-white">Travel AI</h3>
+                </div>
+                <p className="text-sm text-indigo-300 mt-1 font-medium">
+                  Analysis for {amount} {from} to {to}
+                </p>
               </div>
-              <span className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">Buys You</span>
-              <p className="text-sm font-medium text-slate-200 leading-tight mt-1">{insight.buy}</p>
+              <div className="flex gap-2">
+                {/* Refresh Button */}
+                {showResults && (
+                  <button
+                    onClick={fetchInsights}
+                    disabled={loading}
+                    className="p-2 bg-slate-800 rounded-full text-slate-400 hover:text-white hover:bg-slate-700 transition-colors disabled:opacity-50"
+                    title="Refresh Analysis"
+                  >
+                    <RefreshCw
+                      className={`w-5 h-5 ${loading ? "animate-spin" : ""}`}
+                    />
+                  </button>
+                )}
+                {/* Close Button */}
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-2 bg-slate-800 rounded-full text-slate-400 hover:text-white hover:bg-red-500/20 hover:text-red-400 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
-            <div className="bg-slate-900/60 rounded-lg p-3 border border-slate-700/50 flex flex-col items-center text-center gap-2">
-              <div className="bg-amber-500/20 p-2 rounded-full">
-                <Lightbulb className="w-4 h-4 text-amber-400" />
+            {/* Welcome View */}
+            {!showResults && !error && (
+              <div className="text-center py-12 flex flex-col items-center">
+                <div className="bg-indigo-500/10 p-6 rounded-full mb-4">
+                  <Globe className="w-12 h-12 text-indigo-400" />
+                </div>
+                <h4 className="text-white text-lg font-bold mb-2">
+                  Ready to explore {to}?
+                </h4>
+                <p className="text-slate-400 text-sm mb-8 max-w-xs">
+                  Get instant safety scores, budget tips, and local food guides.
+                </p>
+                <button
+                  onClick={() => setShowResults(true)}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 hover:scale-[1.02]"
+                >
+                  <Sparkles className="w-5 h-5" /> Reveal Guide
+                </button>
               </div>
-              <span className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">Pro Tip</span>
-              <p className="text-sm font-medium text-slate-200 leading-tight mt-1">{insight.tip}</p>
-            </div>
+            )}
+
+            {/* ERROR STATE */}
+            {showResults && error && (
+              <div className="py-10 flex flex-col items-center justify-center text-center">
+                <div className="bg-red-500/10 p-4 rounded-full mb-3">
+                  <AlertTriangle className="w-8 h-8 text-red-400" />
+                </div>
+                <h4 className="text-white font-bold mb-2">Connection Issue</h4>
+                <p className="text-slate-400 text-sm mb-6 max-w-xs">{error}</p>
+                <button
+                  onClick={handleRetry}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm flex items-center gap-2 transition-colors"
+                >
+                  <RefreshCw className="w-4 h-4" /> Try Again
+                </button>
+              </div>
+            )}
+
+            {/* Loading Skeleton */}
+            {showResults && loading && !error && (
+              <div className="grid grid-cols-1 gap-4 animate-in fade-in duration-500">
+                {/* Skeleton Headline */}
+                <div className="bg-slate-800/50 p-5 rounded-2xl border border-slate-700 h-32 animate-pulse flex flex-col justify-center gap-3">
+                  <div className="h-6 bg-slate-700 rounded w-3/4"></div>
+                  <div className="h-4 bg-slate-700/50 rounded w-1/2"></div>
+                </div>
+
+                {/* Skeleton Tip */}
+                <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 h-24 animate-pulse flex flex-col gap-2">
+                  <div className="h-4 bg-slate-700 rounded w-1/4"></div>
+                  <div className="h-4 bg-slate-700/50 rounded w-full"></div>
+                  <div className="h-4 bg-slate-700/50 rounded w-2/3"></div>
+                </div>
+
+                {/* Skeleton Split */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 h-32 animate-pulse flex flex-col gap-2">
+                    <div className="h-4 bg-slate-700 rounded w-1/3"></div>
+                    <div className="h-8 bg-slate-700 rounded w-1/2 my-1"></div>
+                    <div className="h-2 bg-slate-700 rounded w-full mt-auto"></div>
+                  </div>
+                  <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 h-32 animate-pulse flex flex-col gap-2">
+                    <div className="h-4 bg-slate-700 rounded w-1/3"></div>
+                    <div className="h-4 bg-slate-700 rounded w-2/3"></div>
+                    <div className="h-4 bg-slate-700/50 rounded w-full"></div>
+                  </div>
+                </div>
+
+                {/* Skeleton List */}
+                <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 h-40 animate-pulse flex flex-col gap-3">
+                  <div className="h-4 bg-slate-700 rounded w-1/4"></div>
+                  <div className="flex gap-2">
+                    <div className="h-6 bg-slate-700/50 rounded w-20"></div>
+                    <div className="h-6 bg-slate-700/50 rounded w-24"></div>
+                    <div className="h-6 bg-slate-700/50 rounded w-16"></div>
+                  </div>
+                  <div className="h-px bg-slate-700/50 w-full my-1"></div>
+                  <div className="h-4 bg-slate-700 rounded w-1/4"></div>
+                  <div className="flex gap-2">
+                    <div className="h-6 bg-slate-700/50 rounded w-24"></div>
+                    <div className="h-6 bg-slate-700/50 rounded w-20"></div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Results Grid */}
+            {showResults && data && !loading && !error && (
+              <div className="grid grid-cols-1 gap-4 animate-in slide-in-from-bottom-4 duration-500">
+                {/* Main Headline Card */}
+                <div className="bg-gradient-to-br from-indigo-900/50 to-purple-900/50 p-5 rounded-2xl border border-indigo-500/30">
+                  <h3 className="text-white font-bold text-lg mb-2">
+                    {data.headline}
+                  </h3>
+                  <div className="flex items-start gap-3">
+                    <div className="bg-indigo-500/20 p-2 rounded-lg shrink-0">
+                      <Wallet className="w-4 h-4 text-indigo-300" />
+                    </div>
+                    <p className="text-slate-300 text-sm">{data.buy}</p>
+                  </div>
+                </div>
+
+                {/* Pro Tip */}
+                <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700">
+                  <div className="flex items-center gap-2 mb-2 text-amber-400">
+                    <AlertTriangle className="w-4 h-4" />
+                    <span className="text-xs font-bold uppercase tracking-wider">
+                      Pro Tip
+                    </span>
+                  </div>
+                  <p className="text-slate-300 text-sm">{data.tip}</p>
+                </div>
+
+                {/* Split Grid: Safety & Weather */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Safety Gauge */}
+                  <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Shield className="w-4 h-4 text-slate-400" />
+                      <span className="text-xs font-bold text-slate-400">
+                        SAFETY
+                      </span>
+                    </div>
+                    <div className="text-2xl font-black text-white mb-2">
+                      {data.safety?.score}
+                      <span className="text-sm text-slate-500 font-normal">
+                        /10
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${getSafetyColor(
+                          data.safety?.score
+                        )}`}
+                        style={{
+                          width: `${
+                            (parseInt(data.safety?.score) / 10) * 100
+                          }%`,
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Weather Widget */}
+                  <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CloudSun className="w-4 h-4 text-slate-400" />
+                      <span className="text-xs font-bold text-slate-400">
+                        WEATHER
+                      </span>
+                    </div>
+                    <div className="text-white font-medium text-sm mb-1">
+                      {data.weather?.condition}
+                    </div>
+                    <p className="text-xs text-slate-500 line-clamp-2">
+                      {data.weather?.forecast}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Must Try Section */}
+                <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 space-y-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2 text-orange-400">
+                      <Utensils className="w-3 h-3" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">
+                        Local Eats
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {data.must_things?.foods?.map((f, i) => (
+                        <span
+                          key={i}
+                          className="px-2.5 py-1 bg-orange-500/10 text-orange-300 text-xs rounded-lg border border-orange-500/20 shadow-sm"
+                        >
+                          {f}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-slate-700/50 w-full"></div>
+
+                  <div>
+                    <div className="flex items-center gap-2 mb-2 text-emerald-400">
+                      <MapPin className="w-3 h-3" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">
+                        Hidden Gems
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {data.must_things?.places?.map((p, i) => (
+                        <span
+                          key={i}
+                          className="px-2.5 py-1 bg-emerald-500/10 text-emerald-300 text-xs rounded-lg border border-emerald-500/20 shadow-sm"
+                        >
+                          {p}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-
-          {/* Modular Buttons */}
-          <div className="grid grid-cols-3 gap-2 mt-2">
-            <button
-              onClick={() => fetchSection("safety")}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white py-2 px-2 rounded-lg text-xs flex items-center justify-center gap-1"
-            >
-              <Shield className="w-3 h-3" /> Safety
-            </button>
-
-            <button
-              onClick={() => fetchSection("food")}
-              className="bg-green-600 hover:bg-green-500 text-white py-2 px-2 rounded-lg text-xs flex items-center justify-center gap-1"
-            >
-              <Utensils className="w-3 h-3" /> Must-Eat
-            </button>
-
-            <button
-              onClick={() => fetchSection("weather")}
-              className="bg-amber-600 hover:bg-amber-500 text-white py-2 px-2 rounded-lg text-xs flex items-center justify-center gap-1"
-            >
-              <CloudSunRain className="w-3 h-3" /> Weather
-            </button>
-          </div>
-
-          {/* Dynamic Section Outputs */}
-          <div className="mt-2 space-y-2">
-            {/* Safety */}
-            {sections.safety && !sections.safety.loading && !sections.safety.error && (
-              <div className="bg-indigo-800/50 p-2 rounded-lg text-white text-sm flex flex-col gap-1">
-                <strong>Safety:</strong> {sections.safety.score} — {sections.safety.note}
-              </div>
-            )}
-            {sections.safety?.loading && (
-              <div className="text-indigo-300 text-xs animate-pulse">Fetching safety info...</div>
-            )}
-
-            {/* Food */}
-            {sections.food && !sections.food.loading && !sections.food.error && (
-              <div className="bg-green-800/50 p-2 rounded-lg text-white text-sm flex flex-col gap-1">
-                <strong>Must-Eat:</strong> {sections.food.must_eat.join(", ")}
-              </div>
-            )}
-            {sections.food?.loading && (
-              <div className="text-green-300 text-xs animate-pulse">Fetching food suggestions...</div>
-            )}
-
-            {/* Weather */}
-            {sections.weather && !sections.weather.loading && !sections.weather.error && (
-              <div className="bg-amber-800/50 p-2 rounded-lg text-white text-sm flex flex-col gap-1">
-                <strong>Weather:</strong> {sections.weather.forecast}
-              </div>
-            )}
-            {sections.weather?.loading && (
-              <div className="text-amber-300 text-xs animate-pulse">Fetching weather...</div>
-            )}
-          </div>
-
-          {/* Refresh Scan */}
-          <button
-            onClick={fetchInsight}
-            className="mt-2 w-full text-xs text-indigo-400 hover:text-white flex items-center justify-center gap-1 transition-colors py-3 hover:bg-white/5 rounded-lg touch-manipulation"
-          >
-            <RefreshCw className="w-3 h-3" /> Refresh Scan
-          </button>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

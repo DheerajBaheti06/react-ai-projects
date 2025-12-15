@@ -1,20 +1,22 @@
 import { useState, useEffect, useCallback } from "react";
 import { ArrowUpDown, RefreshCw, TrendingUp, DollarSign } from "lucide-react";
+import { FLAG_API_BASE } from "./config";
 
 // Import components and hooks
-import InputBox from "./components/InputBox";
-import GeminiInsights from "./components/GeminiInsights";
-import CurrencyChart from "./components/CurrencyChart";
-import DeveloperInfo from "./components/DeveloperInfo";
+import {
+  InputBox,
+  GeminiInsights,
+  CurrencyChart,
+  DeveloperInfo,
+} from "./components/index";
 import { useCurrencyInfo } from "./hooks/useCurrencyInfo";
 
-// --- MAIN APP COMPONENT ---
+// Main Component
 function App() {
   const [amount, setAmount] = useState(1);
   const [from, setFrom] = useState("USD");
   const [to, setTo] = useState("INR");
   const [convertedAmount, setConvertedAmount] = useState(0);
-  const [showAI, setShowAI] = useState(false);
 
   const currencyResult = useCurrencyInfo(from);
   const currencyInfo = currencyResult.data;
@@ -54,11 +56,12 @@ function App() {
     "ISK",
   ];
 
-  // Use API data when available, otherwise use comprehensive fallback
+  // API data with fallback to comprehensive list
   const apiOptions = Object.keys(currencyInfo);
-  // Always include the base currency (from) in the options since API doesn't include it
   const finalApiOptions =
-    currencyInfo && apiOptions.length > 0 ? [from, ...apiOptions].sort() : [];
+    currencyInfo && apiOptions.length > 0
+      ? [...new Set([from, ...apiOptions])].sort()
+      : [];
   const options = finalApiOptions.length > 0 ? finalApiOptions : allCurrencies;
 
   const convert = useCallback(() => {
@@ -80,7 +83,7 @@ function App() {
 
   return (
     <div className="min-h-screen w-full bg-[#040609] text-white flex flex-col items-center pt-16 sm:pt-6 lg:pt-10 pb-24 sm:pb-10 px-2 sm:px-4 lg:px-6 xl:px-8 font-sans selection:bg-indigo-500/30">
-      {/* Background Ambience */}
+      {/* Ambient Background */}
       <div className="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] pointer-events-none" />
 
@@ -105,9 +108,8 @@ function App() {
 
       {/* Main Content Grid */}
       <div className="z-10 w-full max-w-[98vw] sm:max-w-[96vw] lg:max-w-[94vw] xl:max-w-[92vw] 2xl:max-w-[90vw] mx-auto">
-        {/* Mobile: Stack vertically, Desktop: Grid layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
-          {/* LEFT COLUMN: Converter - Full width on mobile, spans 2 cols on lg, 3 cols on xl */}
+          {/* Left Column: Input & Converter */}
           <div className="lg:col-span-2 xl:col-span-3 order-1">
             <div className="w-full bg-slate-800/40 backdrop-blur-xl border border-slate-700 rounded-3xl p-4 sm:p-6 lg:p-8 shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent "></div>
@@ -142,7 +144,7 @@ function App() {
                   loading={currencyResult.loading}
                 />
 
-                {/* Exchange rate info - better mobile spacing */}
+                {/* Exchange Rate Status */}
                 <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row sm:justify-between gap-2 text-xs text-slate-400 px-2 font-mono">
                   <span className="text-center sm:text-left">
                     1 {from} = {(currencyInfo[to] || 0).toFixed(4)} {to}
@@ -153,7 +155,7 @@ function App() {
                 </div>
               </div>
 
-              {/* Popular Pairs Quick Chips - Better mobile layout */}
+              {/* Popular Pairs */}
               <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-700/50">
                 <p className="text-slate-400 text-xs font-bold uppercase mb-3 text-center sm:text-left">
                   Popular Pairs
@@ -179,12 +181,12 @@ function App() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Chart & Table - spans 1 col on lg, 2 cols on xl */}
+          {/* Right Column: Analytics & Reference */}
           <div className="lg:col-span-1 xl:col-span-2 order-2 space-y-4 sm:space-y-6">
             {/* Chart - Responsive height */}
             <CurrencyChart from={from} to={to} />
 
-            {/* Quick Conversion Table - Mobile optimized */}
+            {/* Reference Table */}
             <div className="bg-slate-800/40 backdrop-blur-md border border-slate-700 rounded-2xl p-3 sm:p-4 lg:p-5 shadow-xl">
               <div className="flex items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
                 <DollarSign className="w-4 h-4 text-indigo-400 flex-shrink-0" />
@@ -199,7 +201,7 @@ function App() {
                   {amount} {from} converts to:
                 </div>
 
-                {/* Popular currencies conversion */}
+                {/* Common pairs */}
                 {["USD", "EUR", "GBP", "JPY", "INR", "AUD"]
                   .filter((curr) => curr !== from && currencyInfo[curr])
                   .slice(0, 6)
@@ -209,6 +211,23 @@ function App() {
                       className="flex justify-between items-center py-1.5 sm:py-2 border-b border-slate-700/30 last:border-0"
                     >
                       <div className="flex items-center gap-2">
+                        {/* Flag Image */}
+                        <img
+                          src={`${FLAG_API_BASE}/${currency
+                            .slice(0, 2)
+                            .toLowerCase()}.png`}
+                          alt={currency}
+                          className="w-5 h-3.5 object-cover rounded shadow-sm"
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                            e.target.nextSibling.style.display = "block"; // Show fallback if hidden
+                          }}
+                        />
+                        {/* Fallback Globe (Hidden by default, shown on error) */}
+                        <div className="hidden">
+                          <ArrowUpDown className="w-4 h-4 text-slate-600" />
+                        </div>
+
                         <span className="text-slate-400 text-xs font-mono">
                           {currency}
                         </span>
@@ -236,11 +255,19 @@ function App() {
                     </div>
                   ))}
 
-                {/* If current conversion pair isn't in popular list, show it */}
+                {/* Current selection fallback */}
                 {!["USD", "EUR", "GBP", "JPY", "INR", "AUD"].includes(to) &&
                   currencyInfo[to] && (
                     <div className="flex justify-between items-center py-1.5 sm:py-2 border-t border-slate-700/30 pt-2 mt-2">
                       <div className="flex items-center gap-2">
+                        <img
+                          src={`${FLAG_API_BASE}/${to
+                            .slice(0, 2)
+                            .toLowerCase()}.png`}
+                          alt={to}
+                          className="w-5 h-3.5 object-cover rounded shadow-sm"
+                          onError={(e) => (e.target.style.display = "none")}
+                        />
                         <span className="text-indigo-400 text-xs font-mono font-bold">
                           {to}
                         </span>
@@ -259,50 +286,12 @@ function App() {
         </div>
       </div>
 
-      {/* 🤖 FLOATING AI TRAVEL INSIGHTS */}
-      {/* Toggle Button */}
-      <button
-        onClick={() => setShowAI(!showAI)}
-        className={`fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group ${
-          showAI ? "rotate-45" : "hover:scale-110"
-        } active:scale-95`}
-        aria-label="Toggle Travel AI"
-      >
-        {showAI ? (
-          <span className="text-xl font-bold">×</span>
-        ) : (
-          <span className="text-lg">🤖</span>
-        )}
-      </button>
-
-      {/* Floating AI Panel */}
-      {showAI && (
-        <div
-          className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          onClick={() => setShowAI(false)}
-        >
-          <div
-            className="w-full max-w-md max-h-[80vh] overflow-y-auto relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close Button */}
-            <button
-              onClick={() => setShowAI(false)}
-              className="absolute top-4 right-4 z-10 w-8 h-8 bg-slate-800/90 hover:bg-slate-700 rounded-full flex items-center justify-center text-white transition-all duration-200 shadow-lg"
-              aria-label="Close AI Panel"
-            >
-              <span className="text-sm font-bold">×</span>
-            </button>
-
-            <GeminiInsights
-              from={from}
-              to={to}
-              amount={amount}
-              convertedAmount={convertedAmount.toFixed(2)}
-            />
-          </div>
-        </div>
-      )}
+      <GeminiInsights
+        from={from}
+        to={to}
+        amount={amount}
+        convertedAmount={convertedAmount.toFixed(2)}
+      />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Globe, RefreshCw } from "lucide-react";
+import { FLAG_API_BASE } from "../config";
 
 function InputBox({
   label,
@@ -22,7 +23,7 @@ function InputBox({
   const getFlagUrl = (code) => {
     if (!code) return "";
     const countryCode = code.slice(0, 2).toLowerCase();
-    return `https://flagcdn.com/w40/${countryCode}.png`;
+    return `${FLAG_API_BASE}/${countryCode}.png`;
   };
 
   return (
@@ -39,7 +40,7 @@ function InputBox({
       </div>
 
       <div className="flex items-center gap-3">
-        {/* Amount Input */}
+        {/* Amount Field */}
         <input
           className="w-full bg-transparent text-2xl sm:text-3xl font-bold text-white outline-none placeholder-slate-600 disabled:text-slate-500"
           type="number"
@@ -51,7 +52,7 @@ function InputBox({
           }
         />
 
-        {/* Currency Dropdown */}
+        {/* Currency Select */}
         <div className="relative flex items-center bg-slate-900 rounded-lg p-1 border border-slate-700 min-w-[90px] sm:min-w-[100px] cursor-pointer">
           <div className="w-6 h-4 ml-2 rounded overflow-hidden flex-shrink-0 relative">
             {!imageError ? (
@@ -66,7 +67,7 @@ function InputBox({
             )}
           </div>
 
-          {/* Hidden select that covers the entire container */}
+          {/* Native Select Overlay */}
           <select
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
             value={selectCurrency}
@@ -82,7 +83,7 @@ function InputBox({
             ))}
           </select>
 
-          {/* Visible currency text and dropdown arrow */}
+          {/* Custom Display */}
           <div className="flex items-center justify-between w-full pl-2 pr-1 pointer-events-none">
             <span className="text-white font-bold uppercase text-sm">
               {selectCurrency}

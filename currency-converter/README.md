@@ -1,83 +1,104 @@
-# 🌍 Currency Converter Pro
+# 🌍 CurrencyIQ - Intelligent Currency Converter
 
-🔗 **Live Demo:** https://currency-converter-dheerajbaheti-projects.vercel.app/
+![React](https://img.shields.io/badge/React-18-blue?style=for-the-badge&logo=react)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css)
+![Google Gemini](https://img.shields.io/badge/AI-Google_Gemini-4285F4?style=for-the-badge&logo=google-gemini)
+![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?style=for-the-badge&logo=vercel)
 
-A React-based currency converter with **real-time exchange rates, historical charts, and AI-generated travel insights**.
+A professional, production-ready currency converter that goes beyond simple math. **CurrencyIQ** combines real-time financial data with generative AI to provide travelers with instant, context-aware insights about their destination's purchasing power, safety, and culture.
+
+## ✨ Key Features
+
+### 💰 Core Functionality
+
+- **Real-Time Conversion**: Instant conversion between 30+ global currencies using the Frankfurter API.
+- **Smart Caching**: In-memory backend caching to minimize API latency and ensure super-fast responses.
+- **Interactive Charts**: Historical exchange rate trends (1W, 1M, 3M, 1Y) powered by `Chart.js`.
+- **Country Flags**: Visual currency selection with automatic flag integration via `flagcdn`.
+
+### 🤖 AI-Powered Travel Insights (Bento Grid UI)
+
+Click the **floating AI bot** to unlock a smart, context-aware travel dashboard:
+
+- **Buying Power**: "What does 100 USD actully buy in Tokyo?"
+- **Safety Score**: Real-time 1-10 safety rating with color-coded visual gauges.
+- **Weather Radar**: Instant forecasts and packing advice.
+- **Local Eats & Hidden Gems**: Curated recommendations for food and places.
+- **Pro Tips**: Cultural do's and don'ts.
+- _Powered by Google Gemini 2.0 Pro/Flash with robust fallback mechanisms._
+
+### 🛠️ Engineering Excellence
+
+- **Centralized Configuration**: Single source of truth for all API endpoints (`src/config.js`).
+- **Serverless Backend**: Secure `api/gemini.js` function to hide API keys from the client.
+- **Resilience & Rate Limiting**:
+  - **In-Memory Caching**: Identical requests are served instantly from RAM, saving API quota.
+  - **Smart Fallback**: Automatically switches from `Gemini 2.5` to `Gemini 1.5-Flash` if the primary model is busy or rate-limited.
+- **Responsive Design**: Mobile-first glassmorphism UI with smooth animations.
+
+### 💡 Why Serverless?
+
+We chose **Vercel Serverless Functions** for three critical reasons:
+
+1.  **Security**: API keys are stored on the server, never exposed to the frontend browser (preventing theft).
+2.  **Scalability**: The backend scales automatically from 0 to 1M+ requests without managing a VPS.
+3.  **Cost Efficiency**: No idle server costs; you only pay when the API is actually used.
+
+4.  **Cost Efficiency**: No idle server costs; you only pay when the API is actually used.
 
 ---
 
-## ✨ Features
+## 🎓 Key Learnings & Advanced Concepts
 
-### 💱 Currency Conversion
-- 🔄 Real-time exchange rates from Frankfurter API  
-- 💱 One-click currency swap  
-- 🌐 Country flag display  
-- 📊 7 / 30 / 90-day historical rate charts  
-
-### 🤖 AI Travel Insights (Google Gemini)
-- 🛡️ Safety information  
-- 🍽️ Must-eat foods  
-- ☁️ Weather details  
-- 💰 Local buying power  
-
-### 🎨 UI & Experience
-- 📱 Fully responsive design  
-- 🎯 Floating AI panel  
-- ⚡ Fast performance using Vite  
-- 🎨 Styled with Tailwind CSS  
+| Concept         | Implementation in Project                                   |
+| :-------------- | :---------------------------------------------------------- |
+| **Resilience**  | Scalable **Rate Limit Handling** & **Model Fallbacks**      |
+| **Performance** | **In-Memory Server Caching** for low latency                |
+| **Security**    | **Vercel Serverless Functions** for secret management       |
+| **Analytics**   | **Chart.js** integration for data visualization             |
+| **AI**          | **Generative AI (Gemini)** prompt engineering & integration |
 
 ---
 
-## 🚀 Setup Instructions
+## 🚀 Quick Start
 
-### Requirements
-- Node.js 20.19+ or 22.12+
-- NPM or Yarn
+### Prerequisites
 
----
+- Node.js 18+
+- Vercel CLI (`npm i -g vercel`)
 
 ### Installation
+> **⚠️ Note for Cloners**: Please remove the `DeveloperInfo` component (`src/components/DeveloperInfo.jsx`) and its usage in `src/App.jsx` if you are using this for your own project.
 
-```bash
-git clone <repository-url>
-cd currency-converter
-npm install
-```
+1.  **Clone the repository**
 
----
+    ```bash
+    git clone https://github.com/DheerajBaheti06/react-projects.git
+    cd currency-converter
+    ```
 
-### Environment Variable (Optional)
+2.  **Install dependencies**
 
-Create a `.env` file:
+    ```bash
+    npm install
+    ```
 
-```env
-VITE_GEMINI_API_KEY=your_gemini_api_key_here
-```
+3.  **Configure Environment**
+    Create a `.env` file in the root directory:
 
-Get your API key from Google AI Studio.
+    ```env
+    GEMINI_API_KEY=your_gemini_api_key_here
+    ```
 
----
+    > **Secure By Design**: The API key is ONLY accessible by the serverless backend, never exposed to the browser.
 
-### Run Project
-
-```bash
-npm run dev
-```
-
-Open in browser: http://localhost:5173
-
----
-
-## 🛠️ Technologies Used
-
-- React 18  
-- Vite.js 7  
-- Tailwind CSS 3  
-- Chart.js 4  
-- Frankfurter API  
-- Google Gemini API  
-- Flag CDN  
-- Lucide React  
+4.  **Run Locally**
+    Since this app uses Serverless Functions, use Vercel CLI:
+    ```bash
+    npx vercel dev
+    ```
+    - Frontend: `http://localhost:3000`
+    - API: `http://localhost:3000/api/gemini`
 
 ---
 
@@ -85,71 +106,37 @@ Open in browser: http://localhost:5173
 
 ```
 currency-converter/
-├── public/
-│   └── vite.svg               # Vite favicon
+├── api/
+│   └── gemini.js              # 🛡️ Serverless Backend (Secure Proxy + Caching)
 ├── src/
 │   ├── components/
-│   │   ├── CurrencyChart.jsx  # Historical rate charts
-│   │   ├── DeveloperInfo.jsx  # Developer info bar
-│   │   ├── GeminiInsights.jsx # AI travel insights
-│   │   ├── InputBox.jsx       # Currency dropdown input
-│   │   └── index.js           # Component exports
+│   │   ├── GeminiInsights.jsx # 🤖 AI Modal (Bento Grid Layout)
+│   │   ├── CurrencyChart.jsx  # 📈 Historical Data Visualization
+│   │   ├── InputBox.jsx       # 💱 Reusable Input Component
+│   │   └── DeveloperInfo.jsx  # 👨‍💻 Developer Credits
 │   ├── hooks/
-│   │   ├── getCurrencies.js       # Currency list
-│   │   ├── useConvertCurrency.js  # Exact currency fetch & Conversion logic
-│   │   └── useCurrencyInfo.js     # Fetch currency info
-│   ├── App.css
-│   ├── App.jsx
-│   ├── index.css
+│   │   ├── useCurrencyInfo.js     # Custom hook for fetching rates
+│   │   └── useConvertCurrency.js  # Custom hook for conversion math
+│   ├── config.js              # ⚙️ Centralized Frontend Configuration
+│   ├── App.jsx                # Main Application Layout
 │   └── main.jsx
-├── .env
-├── .env.example
-├── .eslintrc.cjs
-├── .gitignore
-├── index.html
-├── package.json
-├── postcss.config.js
-├── tailwind.config.js
-├── vite.config.js
-└── README.md
+├── .env                       # Secrets (GitIgnored)
+└── vercel.json                # Deployment Config
 ```
 
 ---
 
-## 📌 Using the Floating AI Panel
+## 🛠️ Tech Stack
 
-Click the 🤖 button to view:
-- Safety info  
-- Food suggestions  
-- Weather details  
-- Buying power  
-
-Close using outside click, × button, or toggle.
-
----
-
-## 🔧 Scripts
-
-```bash
-npm run dev
-npm run build
-npm run preview
-npm run lint
-```
-
----
-
-## 🌐 APIs Used
-
-- Frankfurter API  
-- Google Gemini API  
-- Flag CDN  
-
----
-
-## 📄 License
-
-MIT License
+| Helper                 | Technology                           |
+| :--------------------- | :----------------------------------- |
+| **Frontend Framework** | React 18 + Vite                      |
+| **Styling**            | Tailwind CSS (Glassmorphism)         |
+| **Icons**              | Lucide React                         |
+| **Charts**             | Chart.js + React-Chartjs-2           |
+| **AI Model**           | Google Gemini 2.0 Flash / Pro        |
+| **Backend**            | Node.js Serverless Functions         |
+| **External APIs**      | Frankfurter (Rates), FlagCDN (Flags) |
 
 ---
 
@@ -157,9 +144,9 @@ MIT License
 
 **Dheeraj Baheti**
 
-- GitHub: https://github.com/DheerajBaheti06  
-- LinkedIn: https://linkedin.com/in/dheeraj-baheti1  
+- **GitHub**: [@DheerajBaheti06](https://github.com/DheerajBaheti06)
+- **LinkedIn**: [Dheeraj Baheti](https://www.linkedin.com/in/dheeraj-baheti1/)
 
 ---
 
-Built with React, Tailwind CSS, Chart.js & Google Gemini API.
+Built with ❤️ using **React** & **Gemini AI**.

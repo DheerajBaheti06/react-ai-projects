@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { CURRENCY_API_BASE } from "../config";
 
 export function useConvertCurrency(from, to, amount) {
   const [newAmount, setNewAmount] = useState(0);
@@ -15,7 +16,7 @@ export function useConvertCurrency(from, to, amount) {
     setIsLoading(true);
     setError(null);
 
-    axios(`https://api.frankfurter.dev/v1/latest?base=${from}&symbols=${to}`)
+    axios(`${CURRENCY_API_BASE}/latest?from=${from}&to=${to}`)
       .then((res) => {
         const rate = res.data.rates[to];
         setNewAmount(amount * rate);
